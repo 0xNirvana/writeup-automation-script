@@ -29,6 +29,17 @@ def check_token():
     print("ID Found: " + id)
     return token, id
 
+def add_display_image(data):
+    image_path = input("Enter the link for display image:\n")
+    image = requests.get(image_path)
+    extension = re.findall("([^.]*)$", image_path)[0]
+    img = open("image.{}".format(extension), "wb")
+    img.write(image.content)
+    uploaded_img_path = upload_image("image.{}".format(extension))
+    # data = re.sub('^\#\s.+?\n(\n)', '![image]({})\n'.format(uploaded_img_path), data) // Need to imporve in future
+    data = re.sub("\n\n", '\n![image]({})\n'.format(uploaded_img_path), data, count=1)
+    return data
+    
 def process_publish(token, id):
     publish_url = host + "/users/{}/posts".format(id)
     headers = {'Authorization': 'Bearer {}'.format(token),
