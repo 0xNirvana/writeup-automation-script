@@ -29,6 +29,26 @@ def check_token():
     print("ID Found: " + id)
     return token, id
 
+def upload_image(image_path):
+    extension = re.findall("([^.]*)$", image_path)[0]
+    image_post_path = host + '/images'
+    headers = {'Authorization': 'Bearer {}'.format(token),
+            # 'Content-Type': 'multipart/form-data; boundary=FormBoundaryXYZ',
+            'Accept': 'application/json',
+            'Accept-charset': 'utf-8'}
+    
+    with open(image_path, "rb") as f:
+        img_content = f.read()
+    
+    files = {"image": ('image.{}'.format(extension), img_content, 'image/{}'.format(extension))}
+
+    response_raw = requests.post(image_post_path, headers=headers, files=files)
+    response = json.loads(response_raw.content)
+    print(json.dumps(response, indent=4))
+
+    img_url = response["data"]["url"]
+    return img_url
+
 def add_display_image(data):
     image_path = input("Enter the link for display image:\n")
     image = requests.get(image_path)
@@ -39,7 +59,18 @@ def add_display_image(data):
     # data = re.sub('^\#\s.+?\n(\n)', '![image]({})\n'.format(uploaded_img_path), data) // Need to imporve in future
     data = re.sub("\n\n", '\n![image]({})\n'.format(uploaded_img_path), data, count=1)
     return data
+
+def replace_internal_image_links(data, base_dir):
+    images = re.findall("\!\[.*]\((.*?)\)", data)
+    # os.chdir(base_dir)
+    for image in images:
+        if "cdn-images" in image:
+            continue
+        img_url = upload_image(image)
+        data = data.replace(image, img_url)
     
+    return data
+     
 def process_publish(token, id):
     publish_url = host + "/users/{}/posts".format(id)
     headers = {'Authorization': 'Bearer {}'.format(token),
