@@ -5,12 +5,16 @@ import re
 
 host = "https://api.medium.com/v1"
 
+# Function to check the token file
 def check_token():
+    # Check if token file exists else prompt to get the token from medium and save it in a file
     if not os.path.exists("token"):
         print("Token file not found!")
         print("Generate a token from Medium's setting page.")
         print("Copy the token and paste in the a file named 'token' in the same directory as this script.")
         exit(1)
+    
+    # Reading token file and generating a request to check if the token is valid
     token = open("token", "r").read()
     path = '/me'
     headers = {'Authorization': 'Bearer {}'.format(token),
@@ -27,6 +31,8 @@ def check_token():
 
     id = response["data"]["id"]
     print("ID Found: " + id)
+
+    # Return the token and user ID
     return token, id
 
 def upload_image(image_path):
